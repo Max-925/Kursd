@@ -1,0 +1,3 @@
+C:/Users/Max/Documents/GitHub/Kursd/cmake-build-debug/CMakeFiles/Kursd.dir
+C:/Users/Max/Documents/GitHub/Kursd/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Max/Documents/GitHub/Kursd/cmake-build-debug/CMakeFiles/rebuild_cache.dir

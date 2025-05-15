@@ -1,0 +1,3 @@
+"D:\Program Files\JetBrains\CLion 2024.2.2\bin\cmake\win\x64\bin\cmake.exe" -E rm -f CMakeFiles\Kursd.dir/objects.a
+"D:\Program Files\JetBrains\CLion 2024.2.2\bin\mingw\bin\ar.exe" qc CMakeFiles\Kursd.dir/objects.a @CMakeFiles\Kursd.dir\objects1.rsp
+"D:\Program Files\JetBrains\CLion 2024.2.2\bin\mingw\bin\g++.exe" -g -Wl,--whole-archive CMakeFiles\Kursd.dir/objects.a -Wl,--no-whole-archive -o Kursd.exe -Wl,--out-implib,libKursd.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Kursd.dir\linkLibs.rsp

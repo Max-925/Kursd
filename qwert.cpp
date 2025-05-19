@@ -1,13 +1,11 @@
 #include <iostream>
-#include <vector>
 #include <iomanip>
-
 
 using namespace std;
 
 const int ROWS = 8;
 const int COLS = 14;
-
+// Початкова таблиця 1- вільна клітинка 0-недоступна
 int board[ROWS][COLS] = {
     {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1},
     {0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
@@ -19,59 +17,32 @@ int board[ROWS][COLS] = {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 };
 
-int values[ROWS][COLS];
-bool used[7][7];
+int values[ROWS][COLS]; // Значення у клітинках
+bool used[7][7];        // Використані доміно
 
+// Напрямки: вправо та вниз
 int dx[] = {0, 1};
 int dy[] = {1, 0};
 
-vector<vector<int>> row_hints = {
-    {},         // Рядок 0
-    {4, 6},     // Рядок 1
-    {},         // Рядок 2
-    {0, 2, 4, 6}, // Рядок 3
-    {},         // Рядок 4
-    {1, 3, 6},  // Рядок 5
-    {},         // Рядок 6
-    {},         // Рядок 7
-};
+// Перевірка меж поля та статусу клітинки
+inline bool in_bounds(int r, int c) {
+    return r >= 0 && c >= 0 && r < ROWS && c < COLS;
+}
+// Перевірка сусідньої клітинки
+inline bool in_bounds_and_free(int r, int c) {
+    return in_bounds(r, c) && board[r][c] == 1 && values[r][c] == -1;
+}
 
-vector<vector<int>> col_hints = {
-    {2, 5, 6}, // Колонка 0
-    {}, // Колонка 1
-    {}, // Колонка 2
-    {0, 1, 4}, // Колонка 3
-    {}, // Колонка 4
-    {0, 3, 6}, // Колонка 5
-    {}, {}, // Колонки 6-7
-    {0, 1, 3}, // Колонка 8
-    {}, // Колонка 9
-    {1, 2, 4}, // Колонка 10
-    {}, {},    // Колонки 11-12
-    {2, 3, 5, 6} // Колонка 13
-};
-
-void init_values() {
+// Функція для друку дошки
+void print_board(int step) {
+    cout << "\n=== Step: " << step << " ===\n";
     for (int i = 0; i < ROWS; ++i) {
         for (int j = 0; j < COLS; ++j) {
             if (board[i][j] == 1) {
-                values[i][j] = -1;}
-            else{
-              values[i][j] = 0;
-              }
-              }
-              }
-              }
-
-void print_board() {
-    for (int i = 0; i < ROWS; ++i) {
-        for (int j = 0; j < COLS; ++j) {
-            if (board[i][j] == 1) {
-                if (values[i][j] != -1) {
+                if (values[i][j] != -1)
                     cout << setw(3) << values[i][j] << " ";
-                } else {
+                else
                     cout << "  X ";
-                }
             } else {
                 cout << "    ";
             }
@@ -79,8 +50,68 @@ void print_board() {
         cout << endl;
     }
 }
-int main(){
-  init_values();
-  print_board();
-  return 0;
+
+// Основна функція пошуку розв'язку
+bool solve(int step) {
+    for (int r = 0; r < ROWS; ++r) {
+        for (int c = 0; c < COLS; ++c) {
+            // Якщо клітинка доступна для заповнення
+            if (board[r][c] == 1 && values[r][c] == -1) {
+                for (int d = 0; d < 2; ++d) { // Перевіряємо напрямки вправо та вниз
+                    int rr = r + dx[d];
+                    int cc = c + dy[d];
+
+                    // Перевіряємо межі та доступність другої клітинки
+                    if (!in_bounds_and_free(rr, cc)) continue;
+
+                    // Пробуємо всі можливі доміно
+                    for (int a = 0; a <= 6; ++a) {
+                        for (int b = a; b <= 6; ++b) {
+                            if (used[a][b]) continue; // Якщо доміно вже використане
+
+                            // Контроль збігу чисел між клітинками
+                            if (d == 0 && values[r][c - 1] != -1 && values[r][c - 1] != a) continue; // Ліве число збігається
+                            if (d == 1 && values[r - 1][c] != -1 && values[r - 1][c] != a) continue; // Верхнє число збігається
+
+                            // Розставляємо числа
+                            used[a][b] = used[b][a] = true;
+                            values[r][c] = a;
+                            values[rr][cc] = b;
+                            // Вивід поточного етапу вирішення
+                            print_board(step);
+
+                            // Рекурсія
+                            if (solve(step + 1)) return true;
+
+                            // Відкат у разі невдачі
+                            used[a][b] = used[b][a] = false;
+                            values[r][c] = -1;
+                            values[rr][cc] = -1;
+                        }
+                    }
+                }
+                return false; // Якщо немає варіантів
+            }
+        }
+    }
+    return true; // Успіх при заповненні всієї дошки
+}
+
+int main() {
+    // Ініціалізуємо клітинки та доміно
+    fill(&values[0][0], &values[0][0] + ROWS * COLS, -1);
+    fill(&used[0][0], &used[0][0] + 7 * 7, false);
+
+    cout << "Initial board:\n";
+    print_board(0);
+
+    // Пошук розв'язку
+    if (solve(1)) {
+        cout << "\nFound solution!\n";
+        print_board(0);
+    } else {
+        cout << "\nNo solution found.\n";
+    }
+
+    return 0;
 }
